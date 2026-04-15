@@ -23,7 +23,7 @@ jobs:
 
       - name: Generate report
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: node scripts/generate.js
 
       - name: Deploy to Surge
