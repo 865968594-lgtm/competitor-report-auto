@@ -1,10 +1,10 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
 const https = require('https');
 const fs = require('fs');
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  baseURL: 'https://llm-proxy.futuoa.com',
+const client = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: 'https://api.deepseek.com',
 });
 
 function getDateStr(offsetDays = 0) {
@@ -69,15 +69,19 @@ ${formatNews([...rakuten1, ...rakuten2])}
 ${formatNews([...mplus1, ...mplus2])}
 `;
 
-  console.log('🤖 Generating report with Claude...');
+  console.log('🤖 Generating report with DeepSeek...');
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+  const response = await client.chat.completions.create({
+    model: 'deepseek-chat',
     max_tokens: 4096,
-    system: '你是一名专业的马来西亚零售券商竞品分析师。根据提供的新闻数据，整理竞品动态并输出结构化JSON。只输出JSON，不要任何其他文字。',
-    messages: [{
-      role: 'user',
-      content: `以下是 ${startDate} 至 ${endDate} 期间三个马来西亚券商竞品的最新新闻：
+    messages: [
+      {
+        role: 'system',
+        content: '你是一名专业的马来西亚零售券商竞品分析师。根据提供的新闻数据，整理竞品动态并输出结构化JSON。只输出JSON，不要任何其他文字。',
+      },
+      {
+        role: 'user',
+        content: `以下是 ${startDate} 至 ${endDate} 期间三个马来西亚券商竞品的最新新闻：
 
 ${newsContext}
 
@@ -111,10 +115,11 @@ type只能是：campaign（活动）/ feature（新功能）/ notice（重要通
 moomooClass只能是：moomoo-yes / moomoo-no / moomoo-na
 moomooNote开头用：✅ / ❌ / 🔸
 如某竞品无新动态，items设为空数组。`,
-    }],
+      },
+    ],
   });
 
-  const text = response.content.find(b => b.type === 'text')?.text || '';
+  const text = response.choices[0].message.content || '';
   const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
   return JSON.parse((match ? match[1] : text).trim());
 }
