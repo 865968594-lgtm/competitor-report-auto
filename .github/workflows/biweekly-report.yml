@@ -2,9 +2,8 @@ name: Biweekly Competitor Report
 
 on:
   schedule:
-    # 每月 9 日和 23 日，马来西亚时间 9:00（UTC+8 = UTC 1:00）
     - cron: '0 1 9,23 * *'
-  workflow_dispatch:  # 支持手动触发测试
+  workflow_dispatch:
 
 jobs:
   generate-and-deploy:
@@ -19,8 +18,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install dependencies
+        run: npm install
 
       - name: Generate report
         env:
