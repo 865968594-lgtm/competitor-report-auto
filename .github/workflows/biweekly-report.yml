@@ -1,0 +1,31 @@
+name: Biweekly Competitor Report
+
+on:
+  schedule:
+    # 每月 9 日和 23 日，马来西亚时间 9:00（UTC+8 = UTC 1:00）
+    - cron: '0 1 9,23 * *'
+  workflow_dispatch:  # 支持手动触发测试
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Generate report
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+        run: node scripts/generate.js
+
+      - name: Deploy to Surge
+        run: npx surge dist https://moomoo-my-report.surge.sh --token ${{ secrets.SURGE_TOKEN }}
