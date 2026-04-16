@@ -148,7 +148,9 @@ function buildHTML(data, historySidebar = '', historySections = '') {
       ? `<div class="no-update">过去14天内暂无新动态</div>`
       : c.items.map(item => {
           const tag = tagMap[item.type] || tagMap.notice;
-          const linkRow = item.link ? `<span class="label">链接</span><span class="value"><a href="${item.link}" target="_blank">${item.link}</a></span>` : '';
+          let linkDisplay = item.link;
+          try { const u = new URL(item.link); linkDisplay = u.hostname.replace(/^www\./, '') + (u.pathname.length > 1 ? '/…' : ''); } catch {}
+          const linkRow = item.link ? `<span class="label">链接</span><span class="value"><a href="${item.link}" target="_blank">${linkDisplay} ↗</a></span>` : '';
           const sourceRow = item.source ? `<span class="label">来源</span><span class="value">${item.source}</span>` : '';
           return `<div class="card">
       <span class="card-tag ${tag.cls}">${tag.text}</span>
