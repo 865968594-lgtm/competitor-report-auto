@@ -1,6 +1,7 @@
 const OpenAI = require('openai');
 const https = require('https');
 const fs = require('fs');
+const path = require('path');
 
 const client = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY,
@@ -124,7 +125,7 @@ moomooNote开头用：✅ / ❌ / 🔸
   return JSON.parse((match ? match[1] : text).trim());
 }
 
-function buildHTML(data) {
+function buildHTML(data, historySidebar = '', historySections = '') {
   const tagMap = {
     campaign: { cls: 'tag-campaign', text: '活动' },
     feature:  { cls: 'tag-feature',  text: '新功能' },
@@ -184,9 +185,13 @@ body { font-family: -apple-system, 'PingFang SC', sans-serif; background: #f5f5f
 .sidebar-period-label { font-size: 10px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
 .sidebar-link { display: block; padding: 7px 14px; font-size: 12.5px; color: rgba(255,255,255,0.65); text-decoration: none; transition: all 0.15s; border-left: 3px solid transparent; }
 .sidebar-link:hover, .sidebar-link.active { color: white; background: rgba(255,255,255,0.07); }
-.webull-link  { border-left-color: #0066cc; }
-.rakuten-link { border-left-color: #cc0000; }
-.mplus-link   { border-left-color: #006633; }
+.webull-link   { border-left-color: #0066cc; }
+.rakuten-link  { border-left-color: #cc0000; }
+.mplus-link    { border-left-color: #006633; }
+.cgs-link      { border-left-color: #8b4513; }
+.kenanga-link  { border-left-color: #5b2d8e; }
+.fsmone-link   { border-left-color: #e65100; }
+.ibkr-link     { border-left-color: #1a237e; }
 /* Header */
 .header { background: #1a1a2e; color: white; padding: 28px 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
 .header-left { flex: 1; min-width: 0; }
@@ -234,6 +239,8 @@ details.guidelines-open .gl-arrow { transform: rotate(180deg); }
 .period-group { margin-bottom: 32px; }
 .period-header { display: flex; align-items: center; gap: 10px; padding: 14px 0 12px; margin-bottom: 4px; border-bottom: 2px solid #e8e8e8; }
 .period-badge { background: #1a1a2e; color: white; font-size: 10px; padding: 3px 9px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+.period-badge-history { background: #6c757d; color: white; }
+.period-badge.old { background: #888; }
 .period-label { font-size: 15px; font-weight: 700; color: #333; }
 .period-toggle { margin-left: auto; background: white; border: 1px solid #ddd; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; color: #666; }
 .period-toggle:hover { background: #f5f5f5; }
@@ -288,6 +295,7 @@ footer { text-align: center; font-size: 12px; color: #aaa; padding: 24px; border
     <div class="sidebar-period-label" style="color:rgba(255,255,255,0.7);font-weight:700">📌 本期</div>
     <div class="sidebar-period-label">📅 ${data.startDate}–${data.updateDate}</div>
     ${sidebarLinks}
+    ${historySidebar}
   </div>
 </nav>
 
@@ -349,6 +357,7 @@ footer { text-align: center; font-size: 12px; color: #aaa; padding: 24px; border
       </div>
       ${sections}
     </div>
+    ${historySections}
   </div>
   <footer>Auto-generated · 每隔周二自动更新</footer>
 </div>
@@ -493,7 +502,15 @@ window.addEventListener('scroll', function() {
 async function main() {
   console.log('🚀 Starting report generation...');
   const data = await generateReportData();
-  const html = buildHTML(data);
+
+  // Load static history files
+  const scriptDir = __dirname;
+  const historySidebar = fs.existsSync(path.join(scriptDir, 'history-sidebar.html'))
+    ? fs.readFileSync(path.join(scriptDir, 'history-sidebar.html'), 'utf8') : '';
+  const historySections = fs.existsSync(path.join(scriptDir, 'history-sections.html'))
+    ? fs.readFileSync(path.join(scriptDir, 'history-sections.html'), 'utf8') : '';
+
+  const html = buildHTML(data, historySidebar, historySections);
   fs.mkdirSync('dist', { recursive: true });
   fs.writeFileSync('dist/index.html', html, 'utf8');
   console.log(`✅ Report saved (${(html.length / 1024).toFixed(1)} KB)`);
