@@ -270,7 +270,7 @@ details.guidelines-open .gl-arrow { transform: rotate(180deg); }
 .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
 .card p  { font-size: 13px; line-height: 1.7; color: #444; margin-bottom: 10px; }
 .card-meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
-.card-meta .label { color: #888; font-weight: 500; }
+.card-meta .label { color: #888; font-weight: 500; white-space: nowrap; }
 .card-meta .value { color: #333; }
 .card-meta a { color: #0066cc; text-decoration: none; }
 .moomoo-badge { margin-top: 10px; padding: 8px 12px; border-radius: 6px; font-size: 12px; }
