@@ -215,6 +215,17 @@ body { font-family: -apple-system, 'PingFang SC', sans-serif; background: #f5f5f
 .search-no-results { padding: 16px 14px; text-align: center; color: #aaa; font-size: 13px; }
 .card-jump-highlight { animation: jumpPulse 1.2s ease; }
 @keyframes jumpPulse { 0%,100% { box-shadow: none; } 20%,60% { box-shadow: 0 0 0 3px #4f8ef7, 0 4px 20px rgba(79,142,247,0.3); } }
+/* Filter bar */
+.filter-bar { background: #fff; border-bottom: 1px solid #e8e8e8; padding: 10px 40px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.filter-btn { padding: 5px 14px; border-radius: 20px; border: 1.5px solid #e0e0e0; background: #fff; font-size: 12.5px; color: #555; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.filter-btn:hover { border-color: #bbb; background: #f5f5f5; }
+.filter-btn.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+.filter-btn.active.f-campaign { background: #1565c0; border-color: #1565c0; }
+.filter-btn.active.f-feature  { background: #880e4f; border-color: #880e4f; }
+.filter-btn.active.f-notice   { background: #e65100; border-color: #e65100; }
+.filter-label { font-size: 12px; color: #999; margin-right: 4px; }
+.filter-count { font-size: 10px; margin-left: 4px; opacity: 0.75; }
+@media (max-width: 768px) { .filter-bar { padding: 10px 16px; } }
 /* Guidelines bar */
 .guidelines-bar { background: #fff; border-bottom: 1px solid #e8e8e8; padding: 0 40px; }
 .guidelines-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 0; cursor: pointer; font-size: 12.5px; color: #555; user-select: none; list-style: none; border: none; background: none; width: 100%; text-align: left; }
@@ -312,6 +323,14 @@ footer { text-align: center; font-size: 12px; color: #aaa; padding: 24px; border
       </div>
       <div class="search-dropdown" id="searchDropdown"></div>
     </div>
+  </div>
+
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-label">筛选：</span>
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部 <span class="filter-count" id="fc-all"></span></button>
+    <button class="filter-btn f-campaign" data-filter="campaign" onclick="setFilter('campaign')">活动 <span class="filter-count" id="fc-campaign"></span></button>
+    <button class="filter-btn f-feature"  data-filter="feature"  onclick="setFilter('feature')">产品更新 <span class="filter-count" id="fc-feature"></span></button>
+    <button class="filter-btn f-notice"   data-filter="notice"   onclick="setFilter('notice')">重要通知 <span class="filter-count" id="fc-notice"></span></button>
   </div>
 
   <div class="guidelines-bar">
@@ -457,6 +476,48 @@ searchInput.addEventListener('keydown', function(e) {
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.search-container')) closeDropdown();
 });
+
+// ── Type filter ───────────────────────────────────────────────────────
+var currentFilter = 'all';
+
+// Count cards per type and update badges
+(function() {
+  var counts = { all: 0, campaign: 0, feature: 0, notice: 0 };
+  document.querySelectorAll('.card').forEach(function(card) {
+    var tag = card.querySelector('.card-tag');
+    if (!tag) return;
+    counts.all++;
+    var t = tag.textContent.trim();
+    if (t === '活动') counts.campaign++;
+    else if (t === '新功能' || t === '产品更新') counts.feature++;
+    else if (t === '重要通知') counts.notice++;
+  });
+  ['all','campaign','feature','notice'].forEach(function(k) {
+    var el = document.getElementById('fc-' + k);
+    if (el) el.textContent = '(' + counts[k] + ')';
+  });
+})();
+
+function setFilter(type) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.filter === type);
+  });
+  document.querySelectorAll('.card').forEach(function(card) {
+    if (type === 'all') { card.style.display = ''; return; }
+    var tag = card.querySelector('.card-tag');
+    var t = tag ? tag.textContent.trim() : '';
+    var match = (type === 'campaign' && t === '活动') ||
+                (type === 'feature'  && (t === '新功能' || t === '产品更新')) ||
+                (type === 'notice'   && t === '重要通知');
+    card.style.display = match ? '' : 'none';
+  });
+  // Hide competitor sections that have no visible cards
+  document.querySelectorAll('.competitor-section').forEach(function(sec) {
+    var visible = Array.from(sec.querySelectorAll('.card')).some(function(c) { return c.style.display !== 'none'; });
+    sec.style.display = visible ? '' : 'none';
+  });
+}
 
 // ── Mobile sidebar ────────────────────────────────────────────────────
 function toggleSidebar() {
