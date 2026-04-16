@@ -2,7 +2,7 @@ name: Biweekly Competitor Report
 
 on:
   schedule:
-    - cron: '0 1 9,23 * *'
+    - cron: '0 1 * * 2'  # 每周二 09:00 马来西亚时间（UTC+8）
   workflow_dispatch:
 
 jobs:
@@ -10,21 +10,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check biweekly schedule
+        run: |
+          WEEK=$(date +%V)
+          if [ $((WEEK % 2)) -ne 0 ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            echo "SKIP=true" >> $GITHUB_ENV
+          fi
+
       - name: Checkout
+        if: env.SKIP != 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node.js
+        if: env.SKIP != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install dependencies
+        if: env.SKIP != 'true'
         run: npm install
 
       - name: Generate report
+        if: env.SKIP != 'true'
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: node scripts/generate.js
 
       - name: Deploy to Surge
+        if: env.SKIP != 'true'
         run: npx surge dist https://moomoo-my-report.surge.sh --token ${{ secrets.SURGE_TOKEN }}
