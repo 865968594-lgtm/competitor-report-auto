@@ -380,7 +380,6 @@ footer { text-align: center; font-size: 12px; color: #aaa; padding: 24px; border
     </div>
     ${historySections}
   </div>
-  <footer>Auto-generated · 每隔周二自动更新</footer>
 </div>
 
 <script>
